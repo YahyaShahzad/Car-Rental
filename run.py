@@ -1,6 +1,18 @@
-from app import create_app
+import os
 
-app = create_app()
+def create_app():
+    app = Flask(__name__)
 
-if __name__ == "__main__":
-    app.run()
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "DATABASE_URL",
+        "sqlite:///local.db"
+    )
+
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+
+    return app
