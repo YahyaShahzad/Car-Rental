@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+
 class Config:
     """Base configuration class with Render production support"""
 
@@ -17,13 +18,23 @@ class Config:
     # --------------------------------------------------
     DATABASE_URL = os.getenv("DATABASE_URL")
 
-    # Render uses postgres:// but SQLAlchemy needs postgresql://
-    if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace(
-            "postgres://", "postgresql://", 1
-        )
+    if DATABASE_URL:
+        # Render sometimes provides postgres://
+        if DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = DATABASE_URL.replace(
+                "postgres://",
+                "postgresql+psycopg://",
+                1
+            )
+        # Force psycopg3 even if already postgresql://
+        elif DATABASE_URL.startswith("postgresql://"):
+            DATABASE_URL = DATABASE_URL.replace(
+                "postgresql://",
+                "postgresql+psycopg://",
+                1
+            )
 
-    # FINAL DB URI (Render-safe)
+    # Final DB URI (Postgres on Render, SQLite locally)
     SQLALCHEMY_DATABASE_URI = (
         DATABASE_URL or "sqlite:////tmp/car_rental.db"
     )
